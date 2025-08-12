@@ -21,8 +21,8 @@
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-
 int get_btn_press();
+void display_paddle(int);
 int dialVal{ 0 };
 
 void setup() {
@@ -67,6 +67,8 @@ void loop() {
       break;
   }
 
+  display_paddle(dialVal);
+
   display.display();
   delay(100);
 }
@@ -84,4 +86,13 @@ int get_btn_press(){
   else if(x < down_btn)
     return 4;
   else return 5;
+}
+
+void display_paddle(int xPos){      //TODO: i think the writeFillRect is not great, implement this myself
+  int p_w{ 16 };  //paddle width
+  int p_h{ 8 };   //paddle height
+
+  int pos = xPos/8;
+  pos = pos-(p_w/2);
+  display.writeFillRect(pos, 56, p_w, p_h, 0xFF);
 }
