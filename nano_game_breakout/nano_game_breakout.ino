@@ -1,6 +1,7 @@
 
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
+#include "ball.h"
 
 //define all pins
 //buttons
@@ -20,9 +21,11 @@
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+
 int get_btn_press();      //gets button pin value and translates it to a a value [1,5]
 void display_paddle(int); //displays the paddle on bottom of the screen based on the analog value of the pot pin
 void display_buffer();    //regulates fps by waiting to send the display command until the right time
+Ball ball(64, 10, 64, 128);
 
 void setup() {
   pinMode(btn_in, INPUT);
@@ -38,7 +41,7 @@ void setup() {
 
   //display initial buffer and 
   display.display();
-  delay(1000);
+  delay(50);
   display.setTextColor(SSD1306_WHITE);
 
 }
@@ -46,33 +49,32 @@ void setup() {
 void loop() {
   
   const int dialVal = analogRead(dial);
-  Serial.println(dialVal);
 
-  display.clearDisplay();
-  display.setCursor(0,16);
+  //display.clearDisplay();
 
   switch( get_btn_press() ){
     case 0: break;  //no button is being pressed
-    case 1: display.println("UP_BUTTON");
+    case 1:
+      ball.set_position(64, 32);
       break;
-    case 2: display.println("LEFT_BUTTON");
+    case 2:
       break;
-    case 3: display.println("DOWN_BUTTON");
+    case 3:
       break;
-    case 4: display.println("RIGHT_BUTTON");
+    case 4:
       break;
-    case 5: display.println("MENU_BUTTON");
+    case 5:
       break;
   }
-
+  ball.iterate(display);
+  display.clearDisplay();                                         //TODO: is this the right spot for this?      //need the display buffer from prev frame to iterate/check for collision
+  display.drawPixel(ball.x_pos, ball.y_pos, SSD1306_WHITE);
   display_paddle(dialVal);
   display_buffer();
 }
 
 int get_btn_press(){
   const int x = analogRead(btn_in);
-  Serial.print("btn_read: ");
-  Serial.println(x);
   if(x < up_btn - 20)
     return 0;
   else if(x < up_btn)
@@ -86,7 +88,7 @@ int get_btn_press(){
   else return 5;
 }
 
-void display_paddle(int xPos){      //TODO: i think the writeFillRect is not great, implement this myself
+void display_paddle(int xPos){
   static const int p_w{ 16 };  //paddle width
   static const int p_h{ 8 };   //paddle height
 
